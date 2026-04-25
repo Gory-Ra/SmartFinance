@@ -3,7 +3,7 @@ from models import Transacao
 from sqlalchemy import func
 from sqlalchemy import extract
 from datetime import datetime
-
+import pandas as pd
 
 def adicionar_transacao(descricao, valor, tipo, categoria):
     session = Session()
@@ -95,3 +95,25 @@ def total_gasto_no_mes(mes, ano):
     )
     session.close()
     return total
+
+def exportar_para_csv(caminho_arquivo):
+    session = Session()
+    transacoes = session.query(Transacao).all()
+    
+    # Transformando objetos do banco em uma lista de dicionários
+    dados = [
+        {
+            'Data': t.data.strftime('%d/%m/%Y'),
+            'Descricao': t.descricao,
+            'Valor': t.valor,
+            'Tipo': t.tipo,
+            'Categoria': t.categoria
+        } for t in transacoes
+    ]
+    
+    # Cria um DataFrame e exporta
+    df = pd.DataFrame(dados)
+    # encoding='utf-8-sig' garante que acentos fiquem certos no Excel
+    df.to_csv(caminho_arquivo, index=False, sep=';', encoding='utf-8-sig') 
+    
+    session.close()
