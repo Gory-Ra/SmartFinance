@@ -1,8 +1,14 @@
 import customtkinter as ctk
+from tkinter import filedialog
 from database import init_db
-# Consolidei os imports para ficar mais limpo
-from services import adicionar_transacao, calcular_saldo, gastos_por_categoria, listar_categorias
-from visualizer import exibir_grafico_gastos  
+from services import (
+    adicionar_transacao, 
+    calcular_saldo, 
+    gastos_por_categoria, 
+    listar_categorias, 
+    exportar_para_csv
+)
+from visualizer import analisar_e_exibir
 
 # Inicializa o banco
 init_db()
@@ -37,31 +43,48 @@ class App(ctk.CTk):
         self.btn_salvar = ctk.CTkButton(self, text="Salvar Transação", command=self.salvar)
         self.btn_salvar.pack(pady=10)
 
+        # Botão Gráfico agora chama a função com Analytics
         self.btn_grafico = ctk.CTkButton(self, text="📊 Ver Dashboard", fg_color="#2b2b2b", command=self.abrir_grafico)
         self.btn_grafico.pack(pady=10)
 
         self.label_saldo = ctk.CTkLabel(self, text=f"Saldo Atual: R$ {calcular_saldo():.2f}", font=("Roboto", 16))
         self.label_saldo.pack(pady=20)
 
+        # Botão Exportar
+        self.btn_exportar = ctk.CTkButton(self, text="📥 Exportar para CSV", fg_color="#333333", command=self.exportar)
+        self.btn_exportar.pack(pady=10)
+
     def salvar(self):
-        desc = self.entry_desc.get()
-        valor = float(self.entry_valor.get())
-        tipo = self.option_tipo.get()
-        cat = self.combo_cat.get() 
+        try:
+            desc = self.entry_desc.get()
+            valor = float(self.entry_valor.get())
+            tipo = self.option_tipo.get()
+            cat = self.combo_cat.get() 
 
-        adicionar_transacao(desc, valor, tipo, cat)
+            adicionar_transacao(desc, valor, tipo, cat)
 
-        # Atualiza a lista de categorias no menu após salvar
-        self.combo_cat.configure(values=listar_categorias())
-
-        # Limpa campos e atualiza saldo
-        self.entry_desc.delete(0, 'end')
-        self.entry_valor.delete(0, 'end')
-        self.label_saldo.configure(text=f"Saldo Atual: R$ {calcular_saldo():.2f}")
+            # Atualiza a lista de categorias e campos
+            self.combo_cat.configure(values=listar_categorias())
+            self.entry_desc.delete(0, 'end')
+            self.entry_valor.delete(0, 'end')
+            self.label_saldo.configure(text=f"Saldo Atual: R$ {calcular_saldo():.2f}")
+        except ValueError:
+            print("Erro: Verifique se o valor está no formato numérico correto.")
         
     def abrir_grafico(self):
+        # Busca os dados e chama a análise estatística
         dados = gastos_por_categoria()
-        exibir_grafico_gastos(dados)
+        analisar_e_exibir(dados)
+    
+    def exportar(self):
+        caminho = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("Arquivo CSV", "*.csv")]
+        )
+        
+        if caminho:
+            exportar_para_csv(caminho)
+            print(f"Dados exportados com sucesso para: {caminho}")
 
 if __name__ == "__main__":
     app = App()
