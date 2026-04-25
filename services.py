@@ -33,6 +33,14 @@ def calcular_saldo():
     session.close()
     return receitas - despesas
 
+def listar_categorias():
+    session = Session()
+    # Busca categorias distintas na tabela
+    resultado = session.query(Transacao.categoria).distinct().all()
+    session.close()
+    # Retorna uma lista limpa
+    return [c[0] for c in resultado if c[0] is not None]
+
 def gastos_por_categoria():
     session = Session()
     # Busca apenas as despesas e agrupa por categoria somando os valores
