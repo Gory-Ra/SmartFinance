@@ -38,18 +38,18 @@ def exibir_grafico_gastos(dados_por_categoria):
     plt.show()
 
 def analisar_e_exibir(dados_por_categoria):
-    print("\n--- 🧠 ANALYTICS ESTATÍSTICO ---")
+    print("\n--- ANALYTICS ESTATÍSTICO ---")
     for cat, valor_atual in dados_por_categoria.items():
         media = calcular_media_historica(cat) 
         
         if media > 0:
             variacao = ((valor_atual / media) - 1) * 100
             if variacao > 20:
-                print(f"⚠️ ATENÇÃO: {cat} está {variacao:.1f}% acima da média histórica!")
+                print(f" ATENÇÃO: {cat} está {variacao:.1f}% acima da média histórica!")
             elif variacao < -20:
-                print(f"🚀 BOA: {cat} está {abs(variacao):.1f}% abaixo da média!")
+                print(f" BOA: {cat} está {abs(variacao):.1f}% abaixo da média!")
             else:
-                print(f"✅ {cat}: Gasto dentro do padrão.")
+                print(f" {cat}: Gasto dentro do padrão.")
     
     # Chame a função de gráfico que você já tinha
     exibir_grafico_gastos(dados_por_categoria)
