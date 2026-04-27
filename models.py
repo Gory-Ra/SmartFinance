@@ -4,7 +4,6 @@ from datetime import datetime
 
 class Transacao(Base):
     __tablename__ = 'transacoes'
-
     id = Column(Integer, primary_key=True)
     descricao = Column(String)
     valor = Column(Float)

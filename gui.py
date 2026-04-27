@@ -1,4 +1,7 @@
 import customtkinter as ctk
+from tkinter import messagebox, filedialog
+from ai_query import consultar_com_ia # Importa a lógica da IA 
+import customtkinter as ctk
 from tkinter import filedialog
 from database import init_db
 from services import (
@@ -47,6 +50,22 @@ class App(ctk.CTk):
         self.btn_grafico = ctk.CTkButton(self, text="📊 Ver Dashboard", fg_color="#2b2b2b", command=self.abrir_grafico)
         self.btn_grafico.pack(pady=10)
 
+        # SEÇÃO DE INTELIGÊNCIA ARTIFICIAL 
+        self.label_ia = ctk.CTkLabel(self, text="Pergunte à IA (Local)", font=("Roboto", 14, "bold"))
+        self.label_ia.pack(pady=(20, 0))
+
+        self.entry_ia = ctk.CTkEntry(self, placeholder_text="Ex: Quanto gastei com lanche?")
+        self.entry_ia.pack(pady=10, padx=20, fill="x")
+
+        self.btn_ia = ctk.CTkButton(
+            self, 
+            text="🤖 Consultar Assistente", 
+            fg_color="#57007f", 
+            hover_color="#3a0055", 
+            command=self.perguntar_ia # Liga o botão à função abaixo
+        )
+        self.btn_ia.pack(pady=5)
+
         self.label_saldo = ctk.CTkLabel(self, text=f"Saldo Atual: R$ {calcular_saldo():.2f}", font=("Roboto", 16))
         self.label_saldo.pack(pady=20)
 
@@ -86,6 +105,32 @@ class App(ctk.CTk):
             exportar_para_csv(caminho)
             print(f"Dados exportados com sucesso para: {caminho}")
 
+    def perguntar_ia(self):
+        pergunta = self.entry_ia.get()
+        if not pergunta: return
+            
+        resultado = consultar_com_ia(pergunta)
+        
+        if isinstance(resultado, list) and len(resultado) > 0:
+            valor = resultado[0][0]
+        if resultado == "ERRO_SQL":
+            messagebox.showerror("Erro", "A IA gerou um comando SQL inválido. Tente perguntar de outra forma.")
+            return
+
+        if isinstance(resultado, list) and len(resultado) > 0:
+            
+            # --- CORREÇÃO AQUI: Verifica se o valor é None antes de formatar ---
+            if valor is None:
+                res_texto = "Não encontrei registros para essa busca específica."
+            elif len(resultado[0]) == 1:
+                # Agora só formata se 'valor' não for None
+                res_texto = f"O total identificado é: R$ {float(valor):.2f}"
+            else:
+                res_texto = "Resultados encontrados:\n" + "\n".join([str(r) for r in resultado])
+            
+            messagebox.showinfo("🤖 Assistente SmartFinance", res_texto)
+        else:
+            messagebox.showinfo("🤖 Assistente SmartFinance", "A IA não conseguiu encontrar dados ou o comando gerado foi inválido para SQLite.")
 if __name__ == "__main__":
     app = App()
     app.mainloop()
